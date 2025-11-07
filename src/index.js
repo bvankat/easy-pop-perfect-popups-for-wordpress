@@ -3,16 +3,171 @@
  */
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
-import { PanelBody, SelectControl, TextControl, ToggleControl, RangeControl, DateTimePicker } from '@wordpress/components';
+import { PanelBody, SelectControl, TextControl, ToggleControl, RangeControl, DateTimePicker, Button, Spinner } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
-import { useState } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
+import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
  */
 import './style.scss';
 import './editor.scss';
+
+/**
+ * Post/Page Selector Component
+ */
+const PostPageSelector = ( { value, onChange } ) => {
+	const [ searchTerm, setSearchTerm ] = useState( '' );
+	const [ searchResults, setSearchResults ] = useState( [] );
+	const [ isSearching, setIsSearching ] = useState( false );
+	const [ selectedItems, setSelectedItems ] = useState( [] );
+
+	// Parse value (comma-separated IDs) and load selected items
+	useEffect( () => {
+		if ( ! value ) {
+			setSelectedItems( [] );
+			return;
+		}
+
+		const ids = value.split( ',' ).map( id => parseInt( id.trim() ) ).filter( id => id > 0 );
+		
+		if ( ids.length === 0 ) {
+			setSelectedItems( [] );
+			return;
+		}
+
+		// Fetch post/page data for selected IDs
+		const fetchSelectedItems = async () => {
+			try {
+				const promises = ids.map( async ( id ) => {
+					try {
+						const post = await apiFetch( { path: `/wp/v2/posts/${ id }` } );
+						return { ...post, type: 'post' };
+					} catch {
+						try {
+							const page = await apiFetch( { path: `/wp/v2/pages/${ id }` } );
+							return { ...page, type: 'page' };
+						} catch {
+							return null;
+						}
+					}
+				} );
+				const results = await Promise.all( promises );
+				setSelectedItems( results.filter( item => item !== null ) );
+			} catch ( error ) {
+				console.error( 'Error fetching selected items:', error );
+			}
+		};
+
+		fetchSelectedItems();
+	}, [ value ] );
+
+	// Search for posts and pages
+	const handleSearch = async ( term ) => {
+		setSearchTerm( term );
+		
+		if ( term.length < 2 ) {
+			setSearchResults( [] );
+			return;
+		}
+
+		setIsSearching( true );
+		try {
+			// Search both posts and pages
+			const searchParam = encodeURIComponent( term );
+			const [ postsResponse, pagesResponse ] = await Promise.all( [
+				apiFetch( {
+					path: `/wp/v2/posts?search=${ searchParam }&per_page=10&status=publish`,
+				} ),
+				apiFetch( {
+					path: `/wp/v2/pages?search=${ searchParam }&per_page=10&status=publish`,
+				} ),
+			] );
+
+			// Combine and format results
+			const combined = [
+				...postsResponse.map( item => ( { ...item, type: 'post' } ) ),
+				...pagesResponse.map( item => ( { ...item, type: 'page' } ) ),
+			];
+
+			// Filter out already selected items
+			const selectedIds = selectedItems.map( item => item.id );
+			const filtered = combined.filter( item => ! selectedIds.includes( item.id ) );
+
+			setSearchResults( filtered );
+		} catch ( error ) {
+			console.error( 'Error searching:', error );
+			setSearchResults( [] );
+		} finally {
+			setIsSearching( false );
+		}
+	};
+
+	// Add item to selection
+	const handleAddItem = ( item ) => {
+		const newSelected = [ ...selectedItems, item ];
+		setSelectedItems( newSelected );
+		const ids = newSelected.map( i => i.id ).join( ',' );
+		onChange( ids );
+		setSearchTerm( '' );
+		setSearchResults( [] );
+	};
+
+	// Remove item from selection
+	const handleRemoveItem = ( itemId ) => {
+		const newSelected = selectedItems.filter( item => item.id !== itemId );
+		setSelectedItems( newSelected );
+		const ids = newSelected.map( i => i.id ).join( ',' );
+		onChange( ids || '' );
+	};
+
+	return (
+		<div className="modal-builder-post-page-selector">
+			<TextControl
+				label={ __( 'Search Posts/Pages', 'modal-builder' ) }
+				value={ searchTerm }
+				onChange={ handleSearch }
+				placeholder={ __( 'Type to search...', 'modal-builder' ) }
+			/>
+			
+			{ isSearching && <Spinner /> }
+			
+			{ searchResults.length > 0 && (
+				<ul style={ { listStyle: 'none', padding: 0, margin: '10px 0', border: '1px solid #ddd', borderRadius: '4px', maxHeight: '200px', overflowY: 'auto' } }>
+					{ searchResults.map( item => (
+						<li key={ item.id } style={ { padding: '8px', borderBottom: '1px solid #eee', cursor: 'pointer' } } onClick={ () => handleAddItem( item ) }>
+							<strong>{ item.title.rendered }</strong> ({ item.type === 'post' ? __( 'Post', 'modal-builder' ) : __( 'Page', 'modal-builder' ) })
+						</li>
+					) ) }
+				</ul>
+			) }
+
+			{ selectedItems.length > 0 && (
+				<div style={ { marginTop: '15px' } }>
+					<strong>{ __( 'Selected:', 'modal-builder' ) }</strong>
+					<ul style={ { listStyle: 'none', padding: 0, margin: '10px 0' } }>
+						{ selectedItems.map( item => (
+							<li key={ item.id } style={ { padding: '8px', background: '#f0f0f0', marginBottom: '5px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
+								<span>
+									<strong>{ item.title.rendered }</strong> ({ item.type === 'post' ? __( 'Post', 'modal-builder' ) : __( 'Page', 'modal-builder' ) })
+								</span>
+								<Button
+									isSmall
+									isDestructive
+									onClick={ () => handleRemoveItem( item.id ) }
+								>
+									{ __( 'Remove', 'modal-builder' ) }
+								</Button>
+							</li>
+						) ) }
+					</ul>
+				</div>
+			) }
+		</div>
+	);
+};
 
 const ModalSettings = () => {
 	const postType = useSelect( ( select ) => {
@@ -46,6 +201,8 @@ const ModalSettings = () => {
 		modal_schedule_start: scheduleStart = '',
 		modal_schedule_end: scheduleEnd = '',
 		modal_referrer_filter: referrerFilter = '',
+		modal_page_targeting: pageTargeting = 'entire_site',
+		modal_target_posts_pages: targetPostsPages = '',
 		modal_position: position = 'center',
 		modal_animation: animation = 'fade',
 		modal_overlay_opacity: overlayOpacity = 75,
@@ -252,6 +409,34 @@ const ModalSettings = () => {
 					help={ __( 'Show only to users from specific referrer (e.g., google.com, facebook.com)', 'modal-builder' ) }
 					placeholder="google.com"
 				/>
+
+				<PanelBody title={ __( 'Page/Post Targeting', 'modal-builder' ) } initialOpen={ false }>
+					<SelectControl
+						label={ __( 'Targeting', 'modal-builder' ) }
+						value={ pageTargeting }
+						options={ [
+							{ label: __( 'Entire Site', 'modal-builder' ), value: 'entire_site' },
+							{ label: __( 'Homepage Only', 'modal-builder' ), value: 'homepage_only' },
+							{ label: __( 'Posts Only', 'modal-builder' ), value: 'posts_only' },
+							{ label: __( 'Pages Only', 'modal-builder' ), value: 'pages_only' },
+							{ label: __( 'Selected Posts/Pages', 'modal-builder' ), value: 'selected_posts_pages' },
+						] }
+						onChange={ ( value ) => updateMeta( 'modal_page_targeting', value ) }
+						help={ __( 'Choose where this popup should be displayed', 'modal-builder' ) }
+					/>
+
+					{ pageTargeting === 'selected_posts_pages' && (
+						<div style={ { marginTop: '20px' } }>
+							<PostPageSelector
+								value={ targetPostsPages }
+								onChange={ ( value ) => updateMeta( 'modal_target_posts_pages', value ) }
+							/>
+							<p style={ { fontSize: '12px', color: '#646970', marginTop: '10px' } }>
+								{ __( 'Select specific posts or pages to target with this popup.', 'modal-builder' ) }
+							</p>
+						</div>
+					) }
+				</PanelBody>
 			</PluginDocumentSettingPanel>
 
 			<PluginDocumentSettingPanel

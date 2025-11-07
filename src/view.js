@@ -10,6 +10,12 @@
 	}
 
 	const modals = modalBuilderData.modals;
+	const pageContext = modalBuilderData.pageContext || {
+		currentPostId: 0,
+		isHomepage: false,
+		isPage: false,
+		isPost: false,
+	};
 	let activeModal = null;
 	let focusedElementBeforeModal = null;
 	const STORAGE_PREFIX = 'mb_';
@@ -155,6 +161,51 @@
 	 * Check if modal should show based on all rules
 	 */
 	function shouldShowModal( modal ) {
+		// Check page/post targeting rules first
+		const targeting = modal.pageTargeting || 'entire_site';
+
+		switch ( targeting ) {
+			case 'entire_site':
+				// Show everywhere - no restrictions
+				break;
+
+			case 'homepage_only':
+				if ( ! pageContext.isHomepage ) {
+					return false;
+				}
+				break;
+
+			case 'posts_only':
+				if ( ! pageContext.isPost ) {
+					return false;
+				}
+				break;
+
+			case 'pages_only':
+				if ( ! pageContext.isPage ) {
+					return false;
+				}
+				break;
+
+			case 'selected_posts_pages':
+				if ( modal.targetPostsPages ) {
+					const targetIds = modal.targetPostsPages.split( ',' ).map( id => parseInt( id.trim() ) ).filter( id => id > 0 );
+					if ( targetIds.length > 0 ) {
+						// Only show on selected posts/pages
+						if ( ! targetIds.includes( pageContext.currentPostId ) ) {
+							return false;
+						}
+					} else {
+						// No valid IDs selected, don't show
+						return false;
+					}
+				} else {
+					// No posts/pages selected, don't show
+					return false;
+				}
+				break;
+		}
+
 		// Check page views threshold
 		if ( modal.pageViewsThreshold > 0 && getPageViewCount() < modal.pageViewsThreshold ) {
 			return false;

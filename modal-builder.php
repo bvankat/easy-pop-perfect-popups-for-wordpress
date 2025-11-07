@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Easy Pop - Perfect Popups for Wordpress
  * Description:       Create beautiful modals and popups using the WordPress block editor with powerful targeting and display options.
- * Version:           0.2.1
+ * Version:           0.3.0
  * Requires at least: 6.1
  * Requires PHP:      7.4
  * Author:            Hanscom Park Studio
@@ -108,6 +108,8 @@ function modal_builder_get_defaults() {
 		'modal_schedule_start' => '',
 		'modal_schedule_end' => '',
 		'modal_referrer_filter' => '',
+		'modal_page_targeting' => 'entire_site',
+		'modal_target_posts_pages' => '',
 		'modal_position' => 'center',
 		'modal_animation' => 'fade',
 		'modal_overlay_opacity' => 75,
@@ -147,6 +149,8 @@ function modal_builder_render_settings_page() {
 			'modal_schedule_start',
 			'modal_schedule_end',
 			'modal_referrer_filter',
+			'modal_page_targeting',
+			'modal_target_posts_pages',
 			'modal_position',
 			'modal_animation',
 			'modal_overlay_opacity',
@@ -274,6 +278,22 @@ function modal_builder_render_settings_page() {
 				<tr>
 					<th scope="row"><?php echo esc_html__( 'Default Referrer Filter', 'modal-builder' ); ?></th>
 					<td><input type="text" name="modal_referrer_filter" value="<?php echo esc_attr( $defaults['modal_referrer_filter'] ); ?>" class="regular-text" /></td>
+				</tr>
+			</table>
+
+			<h2 class="title"><?php echo esc_html__( 'Page/Post Targeting', 'modal-builder' ); ?></h2>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php echo esc_html__( 'Default Page Targeting', 'modal-builder' ); ?></th>
+					<td>
+						<select name="modal_page_targeting">
+							<option value="entire_site" <?php selected( $defaults['modal_page_targeting'], 'entire_site' ); ?>><?php echo esc_html__( 'Entire Site', 'modal-builder' ); ?></option>
+							<option value="homepage_only" <?php selected( $defaults['modal_page_targeting'], 'homepage_only' ); ?>><?php echo esc_html__( 'Homepage Only', 'modal-builder' ); ?></option>
+							<option value="posts_only" <?php selected( $defaults['modal_page_targeting'], 'posts_only' ); ?>><?php echo esc_html__( 'Posts Only', 'modal-builder' ); ?></option>
+							<option value="pages_only" <?php selected( $defaults['modal_page_targeting'], 'pages_only' ); ?>><?php echo esc_html__( 'Pages Only', 'modal-builder' ); ?></option>
+							<option value="selected_posts_pages" <?php selected( $defaults['modal_page_targeting'], 'selected_posts_pages' ); ?>><?php echo esc_html__( 'Selected Posts/Pages', 'modal-builder' ); ?></option>
+						</select>
+					</td>
 				</tr>
 			</table>
 
@@ -451,6 +471,20 @@ function modal_builder_register_meta() {
 		'default'      => $defaults['modal_referrer_filter'],
 	) );
 
+	register_post_meta( 'modal', 'modal_page_targeting', array(
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => $defaults['modal_page_targeting'],
+	) );
+
+	register_post_meta( 'modal', 'modal_target_posts_pages', array(
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => $defaults['modal_target_posts_pages'],
+	) );
+
 	// Display options
 	register_post_meta( 'modal', 'modal_position', array(
 		'type'         => 'string',
@@ -553,6 +587,8 @@ function modal_builder_enqueue_frontend_assets() {
 			'devices'                 => get_post_meta( $modal->ID, 'modal_devices', true ) ?: 'all',
 			'browsers'                => get_post_meta( $modal->ID, 'modal_browsers', true ) ?: 'all',
 			'referrerFilter'          => get_post_meta( $modal->ID, 'modal_referrer_filter', true ),
+			'pageTargeting'           => get_post_meta( $modal->ID, 'modal_page_targeting', true ) ?: 'entire_site',
+			'targetPostsPages'        => get_post_meta( $modal->ID, 'modal_target_posts_pages', true ) ?: '',
 			'position'                => get_post_meta( $modal->ID, 'modal_position', true ) ?: 'center',
 			'animation'               => get_post_meta( $modal->ID, 'modal_animation', true ) ?: 'fade',
 			'overlayOpacity'          => (int) get_post_meta( $modal->ID, 'modal_overlay_opacity', true ),
@@ -581,8 +617,20 @@ function modal_builder_enqueue_frontend_assets() {
 		true
 	);
 
+	// Get current page context for targeting
+	$current_post_id = get_queried_object_id();
+	$is_homepage = is_front_page();
+	$is_page = is_page();
+	$is_post = is_single() && ! is_page();
+
 	wp_localize_script( 'modal-builder-frontend', 'modalBuilderData', array(
 		'modals' => $modal_data,
+		'pageContext' => array(
+			'currentPostId' => $current_post_id,
+			'isHomepage' => $is_homepage,
+			'isPage' => $is_page,
+			'isPost' => $is_post,
+		),
 	) );
 }
 add_action( 'wp_enqueue_scripts', 'modal_builder_enqueue_frontend_assets' );

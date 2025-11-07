@@ -27,6 +27,8 @@ A powerful modal and popup builder that integrates seamlessly with the WordPress
 - **Device Targeting** - Desktop, mobile, tablet specific
 - **Browser Detection** - Target specific browsers
 - **URL Referrer** - Show based on where users came from
+- **Page/Post Selector** - Sensibile defaults *and* fine-tuned control
+
 
 ### 🎨 Display Options
 - Multiple position options (center, corners, etc.)
@@ -179,8 +181,15 @@ No! The plugin is optimized for performance with minimal JavaScript (under 3KB) 
 
 ## Changelog
 
+### Version 0.3.0
+* Adds post/page targeting controls
+
+### Version 0.2.1
+* Working version
+* Renames plugin
+
 ### Version 0.1.0
-* Initial release
+* Pre-release
 * Custom post type for modals
 * Block editor integration
 * Multiple trigger options
