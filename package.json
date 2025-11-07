@@ -1,0 +1,21 @@
+
+  {
+	"name": "modal-builder",
+	"version": "0.1.0",
+	"description": "Create beautiful modals and popups using the WordPress block editor with powerful targeting and display options.",
+	"author": "WordPress Telex",
+	"license": "GPL-2.0-or-later",
+	"main": "build/index.js",
+	"scripts": {
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"packages-update": "wp-scripts packages-update",
+		"plugin-zip": "wp-scripts plugin-zip",
+		"start": "wp-scripts start"
+	},
+    "devDependencies": {
+        "@wordpress/scripts": "^30.15.0"
+	}
+}

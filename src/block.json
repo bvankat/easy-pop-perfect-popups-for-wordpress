@@ -1,0 +1,21 @@
+
+  {
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "telex/block-modal-builder",
+	"version": "0.1.0",
+	"title": "Modal Builder",
+	"category": "widgets",
+	"icon": "welcome-view-site",
+	"description": "Create beautiful modals and popups using the WordPress block editor",
+	"example": {},
+	"supports": {
+		"html": false
+	},
+	"textdomain": "modal-builder-block-wp",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"viewScript": "file:./view.js"
+}
+  

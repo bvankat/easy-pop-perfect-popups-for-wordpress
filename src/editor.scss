@@ -1,0 +1,26 @@
+
+/**
+ * Editor styles for modal settings panel
+ */
+
+.modal-builder-settings-panel {
+	.components-panel__body-title {
+		display: flex;
+		align-items: center;
+
+		svg {
+			margin-right: 8px;
+		}
+	}
+
+	.components-base-control {
+		margin-bottom: 20px;
+	}
+
+	.components-base-control__help {
+		font-size: 12px;
+		color: #757575;
+		margin-top: 8px;
+	}
+}
+	
