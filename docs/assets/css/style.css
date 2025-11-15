@@ -260,13 +260,18 @@ a:hover {
     gap: var(--spacing-xl);
 }
 
-.nav-links a {
+.nav-links-mobile {
+   display: none;
+   list-style: none;
+}
+
+.nav-links a, .nav-links-mobile a {
     color: var(--color-text-light);
     font-weight: 500;
     transition: color 0.3s ease;
 }
 
-.nav-links a:hover {
+.nav-links a:hover, .nav-links-mobile a:hover {
     color: var(--color-primary);
 }
 
@@ -705,6 +710,10 @@ a:hover {
         grid-template-columns: 1fr;
         gap: var(--spacing-lg);
     }
+    
+    .hero .container .hero-image {
+         order: -1;
+     }
 
     .hero-title {
         font-size: 2.5rem;
@@ -715,8 +724,11 @@ a:hover {
     }
 
     .nav-links {
-        gap: var(--spacing-md);
-        font-size: 0.9rem;
+        display: none;
+    }
+    
+    .nav-links-mobile {
+        display: inline-block;
     }
 
     .features-grid,
