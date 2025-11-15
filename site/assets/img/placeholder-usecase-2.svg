@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" fill="none">
+  <defs>
+    <linearGradient id="usecaseGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8e3de;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0ebe5;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="200" fill="url(#usecaseGrad2)"/>
+  <rect x="60" y="40" width="80" height="80" rx="8" fill="#8b9f8c" opacity="0.2"/>
+  <rect x="160" y="40" width="80" height="80" rx="8" fill="#6b5f59" opacity="0.15"/>
+  <path d="M 100 140 L 150 160 L 200 140" stroke="#6b5f59" stroke-width="2" opacity="0.2" fill="none"/>
+</svg>

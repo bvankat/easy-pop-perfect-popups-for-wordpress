@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" fill="none">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0ebe5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8e3de;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="500" height="300" fill="url(#grad1)"/>
+  
+  <!-- Large rounded rectangle (modal representation) -->
+  <rect x="60" y="50" width="380" height="200" rx="20" fill="white" stroke="#8b9f8c" stroke-width="2" opacity="0.8"/>
+  
+  <!-- Small elements inside -->
+  <rect x="80" y="70" width="320" height="30" rx="6" fill="#f8f7f4" opacity="0.6"/>
+  <rect x="80" y="110" width="280" height="15" rx="4" fill="#f8f7f4" opacity="0.4"/>
+  <rect x="80" y="135" width="260" height="15" rx="4" fill="#f8f7f4" opacity="0.4"/>
+  <rect x="80" y="200" width="100" height="30" rx="6" fill="#6b5f59" opacity="0.3"/>
+  
+  <!-- Floating accent circle -->
+  <circle cx="420" cy="80" r="30" fill="#8b9f8c" opacity="0.15"/>
+  <circle cx="50" cy="250" r="40" fill="#6b5f59" opacity="0.1"/>
+</svg>
